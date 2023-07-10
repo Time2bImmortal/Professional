@@ -3,6 +3,7 @@ import serial
 import time
 from datetime import datetime, timedelta
 import os
+
 # Define your temperature range
 TEMPERATURE_RANGE = (27.0, 31.0)
 
@@ -13,10 +14,12 @@ max_temperature = None
 def temperature_out_of_range(temperature, temperature_range):
     return not (temperature_range[0] <= temperature <= temperature_range[1])
 
-def handle_temperature_out_of_range():
+def handle_temperature_out_of_range(temperature):
     # This function will be called when the temperature is out of the specified range
-    # You can put any code you want here
-    print("Temperature is out of range!")
+    # Append the data to out_of_range.csv
+    with open('out_of_range.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), temperature])
 
 def write_csv(file_path, data):
     with open(file_path, 'w', newline='') as file:
@@ -36,6 +39,11 @@ def main():
     if not os.path.isfile(file_path):
         write_csv(file_path, [['Start', 'Time', 'Adults Room Temperature', 'Adults Room Humidity', 'Larvae Room Temperature', 'Max Temperature', 'Min Temperature'],
                               [start_time, '', '', '', '', '', '']])
+    # Create out_of_range.csv if it doesn't exist
+    if not os.path.isfile('out_of_range.csv'):
+        with open('out_of_range.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Time', 'Temperature'])
 
     ser = serial.Serial('COM9', 9600)  # Open the serial port
 
@@ -75,8 +83,8 @@ def main():
             print(f'Larvae Room Temperature: {larvae_temperature:.2f}°C')
 
             # Check if the temperature is out of range and call the appropriate function if it is
-            if temperature_out_of_range(adults_temperature, TEMPERATURE_RANGE) or temperature_out_of_range(larvae_temperature, TEMPERATURE_RANGE):
-                handle_temperature_out_of_range()
+            if temperature_out_of_range(larvae_temperature, TEMPERATURE_RANGE):
+                handle_temperature_out_of_range(larvae_temperature)
 
             # Load the existing data
             with open(file_path, 'r') as file:
