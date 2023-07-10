@@ -3,7 +3,31 @@ import serial
 import time
 from datetime import datetime, timedelta
 import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
+def send_email(body, to_email):
+    # Set up your email settings
+    my_email = 'seneciolarvaeroom@gmail.com'
+    my_password = 'senecio12345678'
+    smtp_server = 'smtp.gmail.com'
+    smtp_port = 587
+
+    # Create a multipart message
+    msg = MIMEMultipart()
+    msg['From'] = my_email
+    msg['To'] = to_email
+    msg['Subject'] = 'Temperature Alert'
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Send the email
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    server.starttls()
+    server.login(my_email, my_password)
+    text = msg.as_string()
+    server.sendmail(my_email, to_email, text)
+    server.quit()
 # Define your temperature range
 TEMPERATURE_RANGE = (27.0, 31.0)
 
@@ -17,9 +41,15 @@ def temperature_out_of_range(temperature, temperature_range):
 def handle_temperature_out_of_range(temperature):
     # This function will be called when the temperature is out of the specified range
     # Append the data to out_of_range.csv
+    line = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), temperature]
+    body = f'Temperature Alert!\n\nTime: {line[0]}\nTemperature: {line[1]}
+    try:
+        send_email(body, 'yfantys@gmail.com')
+    except Exception as e:
+        print(f"Failed to send email: {e}")
     with open('out_of_range.csv', 'a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"), temperature])
+        writer.writerow(line)
 
 def write_csv(file_path, data):
     with open(file_path, 'w', newline='') as file:
