@@ -63,19 +63,20 @@ def write_csv(file_path, data):
         writer = csv.writer(file)
         writer.writerows(data)
 
-def main():
+def main(start_script):
     global min_temperature_larvae, max_temperature_larvae, min_temperature_adults, max_temperature_adults
 
     last_recorded_time = datetime.now() - timedelta(minutes=30)
+
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    file_path = f'recordings_started_at_{start_time}.csv'
+    file_path = f'recordings_started_at_{start_script}.csv'
 
     # Create the CSV file if it doesn't exist and write the headers
     if not os.path.isfile(file_path):
         write_csv(file_path, [['Time', 'Adults Room Temperature', 'Adults Room Humidity', 'Larvae Room Temperature', 'Max Larvae', 'Min Larvae', "Max Adults", "Min Adults"],
                               ['', '', '', '', '', '']])
     # Create out_of_range.csv if it doesn't exist
-    if not os.path.isfile(f'oor_started_at_{start_time}.csv'):
+    if not os.path.isfile(f'oor_started_at_{start_script}.csv'):
         with open('oor_started_at_{start_time}.csv', 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Time', 'Parameter', 'Value'])
@@ -149,4 +150,5 @@ def main():
         time.sleep(5*60)  # Wait for 5 minutes before reading again
 
 if __name__ == "__main__":
-    # main()
+    start_script = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    main(start_script)
