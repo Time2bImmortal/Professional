@@ -145,9 +145,20 @@ def main(start_script):
                 # Load the existing data
                 with open(file_path, 'r') as file:
                     data = list(csv.reader(file))
+
+                # Ensure the data list has at least two rows (headers and initial data row)
+                if len(data) < 2:
+                    data.append([''] * 8)  # Add an empty row with 8 columns if it doesn't exist
+
+                # Ensure each row has at least 8 columns
+                for row in data:
+                    while len(row) < 8:
+                        row.append('')
                 # Update min and max temperature in the first row
-                data[1][6], data[1][7] = max_temperature_adults, min_temperature_adults
-                data[1][4], data[1][5] = max_temperature_larvae, min_temperature_larvae
+                data[1][4] = str(max_temperature_larvae) if max_temperature_larvae is not None else ''
+                data[1][5] = str(min_temperature_larvae) if min_temperature_larvae is not None else ''
+                data[1][6] = str(max_temperature_adults) if max_temperature_adults is not None else ''
+                data[1][7] = str(min_temperature_adults) if min_temperature_adults is not None else ''
                 if not Range_Dict["Temperature_larvae"][0] <= larvae_temperature <= Range_Dict["Temperature_larvae"][1]:
                     handle_out_of_range("Temperature_larvae", larvae_temperature)
 
